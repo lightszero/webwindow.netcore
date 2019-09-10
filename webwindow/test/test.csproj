@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -8,5 +8,9 @@
   <ItemGroup>
     <ProjectReference Include="..\lib.webwindow\lib.webwindow.csproj" />
   </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="echo ====copy webhost files&#xD;&#xA;del  $(TargetDir)\html /s /q&#xD;&#xA;xcopy $(SolutionDir)webhost\html\*.* $(TargetDir)\html\ /y&#xD;&#xA;echo ====copy done" />
+  </Target>
 
 </Project>

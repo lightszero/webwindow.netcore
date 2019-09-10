@@ -4,27 +4,57 @@ namespace test
 {
     class Program
     {
-        static void Main(string[] args)
+        static async void MainAsync()
         {
             Console.WriteLine("Hello World!");
             lib.webwindow.WebWindow_Remote windowremote = new lib.webwindow.WebWindow_Remote();
-            var b = windowremote.checkElectron(out string version,out string errinfo);
-            Console.WriteLine("got electron=" + b);
-            if (b)
-            {
-                Console.WriteLine("electron version=" + version);
-                windowremote.OpenWindow();
-            }
-            else
-            {
-                Console.WriteLine("make sure to install electron & nodejs");
-                Console.WriteLine("try:: npm install -g electron");
 
-            }
-            while (true)
+            //初始化
+            var b = await windowremote.Init();
+            if (!b)
             {
-                Console.ReadLine();
+                bexit = true;
             }
+            while (!bexit)
+            {
+                var line = Console.ReadLine();
+
+                try
+                {
+                    if (line == "exit")
+                    {
+                        await windowremote.app_exit();
+                        bexit = true;
+
+                        return;
+                    }
+                    if (line == "openwin")
+                    {
+                       var wid= await windowremote.window_create("李白");
+                        Console.WriteLine("openwin=" + wid);
+                    }
+                    if (line.IndexOf("closewin") == 0)
+                    {
+                        var words = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+                        var wid = int.Parse(words[1]);
+                        await windowremote.window_close(wid);
+                    }
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine(err.Message);
+                }
+            }
+        }
+        static bool bexit = false;
+        static void Main(string[] args)
+        {
+            MainAsync();
+            while (!bexit)
+            {
+                System.Threading.Thread.Sleep(100);
+            }
+
         }
     }
 }
