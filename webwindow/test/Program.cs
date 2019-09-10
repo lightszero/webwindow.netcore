@@ -13,7 +13,7 @@ namespace test
             if (b)
             {
                 Console.WriteLine("electron version=" + version);
-                windowremote.OpenWindow();
+                windowremote.startElectron();
             }
             else
             {
