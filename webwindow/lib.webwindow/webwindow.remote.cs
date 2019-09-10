@@ -154,7 +154,7 @@ namespace lib.webwindow
         public async Task app_exit()
         {
             var wc = new System.Net.WebClient();
-            var str=wc.DownloadString("http://localhost:" + this.httpport + "/?method=quit");
+            var str=await wc.DownloadStringTaskAsync("http://localhost:" + this.httpport + "/?method=quit");
             Console.WriteLine(str);
         }
         public async Task<int> window_create(string title)
@@ -162,18 +162,22 @@ namespace lib.webwindow
             Newtonsoft.Json.Linq.JArray _params = new JArray();
             JObject objwin = new JObject();
             objwin["title"] = title;
-            _params[0] = objwin;
-            _params[1] = "http://www.baidu.com";
-            var url = "http://localhost:" + this.httpport + "/?method=window.create&params" + _params.ToString();
+            _params.Add( objwin);
+            _params.Add("http://www.baidu.com");
+            var url = "http://localhost:" + this.httpport + "/?method=window.create&params=" + _params.ToString().Replace("\r\n", "");
             var wc = new System.Net.WebClient();
-            var str = wc.DownloadString(url);
-            Console.WriteLine(str);
-
-            return 0;
+            var str =await wc.DownloadStringTaskAsync(url);
+            var jsonrecv = JObject.Parse(str);
+            var id =(int)jsonrecv["winid"];
+            return id;
         }
         public async Task window_close(int id)
         {
-
+            Newtonsoft.Json.Linq.JArray _params = new JArray();
+            _params.Add(id);
+            var url = "http://localhost:" + this.httpport + "/?method=window.close&params=" + _params.ToString().Replace("\r\n", "");
+            var wc = new System.Net.WebClient();
+            var str = await wc.DownloadStringTaskAsync(url);
         }
     }
 }

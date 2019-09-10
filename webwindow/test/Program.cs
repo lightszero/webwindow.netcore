@@ -17,6 +17,10 @@ namespace test
             }
             while (!bexit)
             {
+                Console.WriteLine("====type exit to quit app.");
+                Console.WriteLine("====type openwin to create a window.");
+                Console.WriteLine("====type closewin [id] to close a window.");
+                Console.Write(">");
                 var line = Console.ReadLine();
 
                 try
