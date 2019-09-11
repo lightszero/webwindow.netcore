@@ -37,6 +37,13 @@ namespace WebWindow
                     tag_title = true;
                 }
             }
+            if(cmd=="eval_back")
+            {
+                lock (this)
+                {
+                    tag_eval = vars[0];
+                }
+            }
         }
         bool tag_title;
         public async Task Remote_SetTitle(string title)

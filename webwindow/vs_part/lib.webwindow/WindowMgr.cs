@@ -22,10 +22,20 @@ namespace WebWindow
             private set;
         }
 
+        /// <summary>
+        /// auto close
+        /// </summary>
+        public bool allWindowClose
+        {
+            get;
+            private set;
+        }
+        public event Action onAllWindowClose;
         public WindowMgr(string urlHost, string urlWin)
         {
             this.urlHost = urlHost;
             this.urlWin = urlWin;
+            this.allWindowClose = false;
         }
         static string cmdfile
         {
@@ -130,7 +140,15 @@ namespace WebWindow
                 }
                 if (r.Data.IndexOf("[TAG]") == 0)
                 {
-                    this.tags.Enqueue(r.Data.Substring(5));
+                    var tag = r.Data.Substring(5);
+                    this.tags.Enqueue(tag);
+
+                    if (tag.IndexOf("all window closed.") == 0)
+                    {
+                        allWindowClose = true;
+                        if (onAllWindowClose != null)
+                            onAllWindowClose();
+                    }
                 }
                 Console.WriteLine("electron=>" + r.Data);
             };
@@ -152,6 +170,12 @@ namespace WebWindow
 
         }
         Queue<string> tags = new Queue<string>();
+        public string TryGetTag()
+        {
+            if (tags.Count == 0)
+                return null;
+            return tags.Dequeue();
+        }
         int httpport_electron = 0;
         /// <summary>
         /// 初始化elctron，host js 会创建一个服务器，并把端口号返回到输出流，我们收集这个端口号
@@ -213,9 +237,9 @@ namespace WebWindow
             while (true)
             {
                 await Task.Delay(1);
-                if (tags.Count > 0)
+                var tag = TryGetTag();
+                if (tag!=null)
                 {
-                    var tag = tags.Dequeue();
                     if (tag.IndexOf("listen at:") == 0)
                     {
                         var portstr = tag.Substring("listen at:".Length);
@@ -226,6 +250,7 @@ namespace WebWindow
                     {
                         return false;
                     }
+
                 }
             }
         }

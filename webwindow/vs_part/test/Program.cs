@@ -14,6 +14,12 @@ namespace test
             winurl = "file://" + System.IO.Path.GetFullPath(winurl);
             WindowMgr windowmgr = new WindowMgr(hosturl, winurl);
 
+
+            //让程序和ui 一起退出
+            windowmgr.onAllWindowClose += () =>
+              {
+                  bexit = true;
+              };
             //初始化
             //由于目前的设计 windowremote 会突然关闭,所以需要在openwin之前检查
             //var b = await windowremote.Init(hosturl);
@@ -60,7 +66,7 @@ namespace test
 
                         WindowRemote window = await WindowRemote.Create(windowmgr, op);
                         await window.Remote_SetTitle("hello that's so cool.");
-                        await window.Remote_Eval("alert('ddd')");
+                        await window.Remote_Eval("document.body.innerHTML='testfix<hr/>adafdf';");
                     }
                     if (line.IndexOf("closewin") == 0)
                     {

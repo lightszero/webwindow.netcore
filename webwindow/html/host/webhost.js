@@ -105,14 +105,23 @@ var wshost = /** @class */ (function () {
                     var winstyle = params[0];
                     var url = params[1];
                     var hide = params[2];
+                    //这个机制保证菜单栏隐藏
                     if (winstyle.autoHideMenuBar == undefined)
                         winstyle.autoHideMenuBar = true;
                     if (hide == undefined)
                         hide = false;
+                    //这个机制保证nodejs被打开，这样才能requrie
+                    if (winstyle.webPreferences == null) {
+                        winstyle.webPreferences = { nodeIntegration: true };
+                    }
+                    else {
+                        winstyle.webPreferences.nodeIntegration = true;
+                    }
                     var mainWindow = new electron.BrowserWindow(winstyle);
                     var _id = this.regWindow(mainWindow);
-                    console.log("try loadUrl=" + url + "?curl=" + this.urlcontrol + "&winid=" + _id);
-                    mainWindow.loadURL(url);
+                    var loadurl = url + "?curl=" + this.urlcontrol + "&winid=" + _id;
+                    console.log("try loadUrl=" + loadurl);
+                    mainWindow.loadURL(loadurl);
                     if (hide) {
                         this.showWindow(_id, false);
                     }
