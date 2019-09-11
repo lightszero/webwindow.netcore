@@ -11,8 +11,20 @@ namespace WebWindow
     /// </summary>
     public class WindowRemote
     {
+        static Dictionary<int, WindowRemote> allwindow;
+        static void RecordWin(WindowRemote win)
+        {
+            if (allwindow == null)
+                allwindow = new Dictionary<int, WindowRemote>();
+            allwindow[win.winid] = win;
+        }
+
         WindowMgr WindowMgr;
-        int winid;
+        public int winid
+        {
+            get;
+            private set;
+        }
         protected WindowRemote(WindowMgr mgr,int windowid)
         {
             this.WindowMgr = mgr;
@@ -20,13 +32,15 @@ namespace WebWindow
         }
         public static async Task<WindowRemote> Create( WebWindow.WindowMgr mgr, WindowCreateOption op)
         {
-            if (mgr.hadInit)
+            if (!mgr.hadInit)
                 throw new Exception("windowmgr has not inited.");
 
             var url = mgr.urlWin;
             var windowid = await mgr.window_create(op, url);
 
             var win = new WindowRemote(mgr, windowid);
+
+            RecordWin(win);
             return win;
         }
 

@@ -7,6 +7,7 @@ export declare class wshost {
     windows: {
         [id: number]: electron.BrowserWindow;
     };
+    urlcontrol: string | null;
     constructor();
     begin(url: string): void;
     onRequest(req: http.IncomingMessage, res: http.ServerResponse): void;

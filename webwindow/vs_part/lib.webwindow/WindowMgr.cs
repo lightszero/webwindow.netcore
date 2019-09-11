@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using static light.http.server.httpserver;
 
 namespace WebWindow
 {
@@ -20,8 +21,8 @@ namespace WebWindow
             get;
             private set;
         }
-        
-        public WindowMgr(string urlHost,string urlWin)
+
+        public WindowMgr(string urlHost, string urlWin)
         {
             this.urlHost = urlHost;
             this.urlWin = urlWin;
@@ -151,15 +152,44 @@ namespace WebWindow
 
         }
         Queue<string> tags = new Queue<string>();
-        int httpport = 0;
+        int httpport_electron = 0;
         /// <summary>
         /// 初始化elctron，host js 会创建一个服务器，并把端口号返回到输出流，我们收集这个端口号
         /// 窗口操作都是通过这个端口rpc
         /// </summary>
         /// <param name="hosturl"></param>
         /// <returns></returns>
+        ///            
+
+        light.http.server.httpserver server_window;
+        int httpport_window;
+        private IWebSocketPeer onwebsocket(System.Net.WebSockets.WebSocket websocket)
+        {
+            return new WebSocketSession(websocket);
+        }
         public async Task<bool> Init()
         {
+            if (this.server_window == null)
+            {
+                this.httpport_window = -1;
+                this.server_window = new light.http.server.httpserver();
+                for (var port = 8888; port < 60000; port++)
+                {
+                    try
+                    {
+                        httpport_window = port;
+                        this.server_window.Start(port);
+                        this.server_window.SetWebsocketAction("/ws", onwebsocket);
+                        Console.WriteLine("httpport_window=" + this.httpport_window);
+                        break;
+                    }
+                    catch
+                    { }
+                }
+                if (this.httpport_window == -1)
+                    throw new Exception("can not init server for window");
+
+            }
             var b = checkElectron(out string version, out string errinfo);
             if (b)
             {
@@ -175,7 +205,7 @@ namespace WebWindow
             //string url = "http://127.0.0.1:88445/__windowmgr.js&checkcode=xxx";
 
             //electron 可以通过commandline 传递信息
-            string url = "ws://127.0.0.1:78474";
+            string url = "ws://127.0.0.1:" + httpport_window + "/ws";
             //start electron
             string args = this.urlHost + " --controlurl=" + url;
             runElectron(args);
@@ -189,7 +219,7 @@ namespace WebWindow
                     if (tag.IndexOf("listen at:") == 0)
                     {
                         var portstr = tag.Substring("listen at:".Length);
-                        httpport = int.Parse(portstr);
+                        httpport_electron = int.Parse(portstr);
                         return true;
                     }
                     if (tag.IndexOf("listen fail") == 0)
@@ -207,7 +237,7 @@ namespace WebWindow
         public async Task app_exit()
         {
             var wc = new System.Net.WebClient();
-            var str = await wc.DownloadStringTaskAsync("http://localhost:" + this.httpport + "/?method=quit");
+            var str = await wc.DownloadStringTaskAsync("http://localhost:" + this.httpport_electron + "/?method=quit");
             Console.WriteLine(str);
         }
         /// <summary>
@@ -222,7 +252,7 @@ namespace WebWindow
             JObject objwin = option.ToJson();
             _params.Add(objwin);
             _params.Add(_url);
-            var url = "http://localhost:" + this.httpport + "/?method=window.create&params=" + _params.ToString().Replace("\r\n", "");
+            var url = "http://localhost:" + this.httpport_electron + "/?method=window.create&params=" + _params.ToString().Replace("\r\n", "");
             var wc = new System.Net.WebClient();
             var str = await wc.DownloadStringTaskAsync(url);
             var jsonrecv = JObject.Parse(str);
@@ -238,7 +268,7 @@ namespace WebWindow
         {
             Newtonsoft.Json.Linq.JArray _params = new JArray();
             _params.Add(id);
-            var url = "http://localhost:" + this.httpport + "/?method=window.close&params=" + _params.ToString().Replace("\r\n", "");
+            var url = "http://localhost:" + this.httpport_electron + "/?method=window.close&params=" + _params.ToString().Replace("\r\n", "");
             var wc = new System.Net.WebClient();
             var str = await wc.DownloadStringTaskAsync(url);
         }
@@ -247,7 +277,7 @@ namespace WebWindow
         {
             Newtonsoft.Json.Linq.JArray _params = new JArray();
             _params.Add(id);
-            var url = "http://localhost:" + this.httpport + "/?method=window.show&params=" + _params.ToString().Replace("\r\n", "");
+            var url = "http://localhost:" + this.httpport_electron + "/?method=window.show&params=" + _params.ToString().Replace("\r\n", "");
             var wc = new System.Net.WebClient();
             var str = await wc.DownloadStringTaskAsync(url);
         }
@@ -255,7 +285,7 @@ namespace WebWindow
         {
             Newtonsoft.Json.Linq.JArray _params = new JArray();
             _params.Add(id);
-            var url = "http://localhost:" + this.httpport + "/?method=window.hide&params=" + _params.ToString().Replace("\r\n", "");
+            var url = "http://localhost:" + this.httpport_electron + "/?method=window.hide&params=" + _params.ToString().Replace("\r\n", "");
             var wc = new System.Net.WebClient();
             var str = await wc.DownloadStringTaskAsync(url);
         }

@@ -11,4 +11,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\lib.httpserver\lib.httpserver.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -15,6 +15,7 @@ namespace WebWindow
         public int? y;
         public int? width;
         public int? height;
+        public bool? autoHideMenuBar;
         public JObject ToJson()
         {
             var objwin =new JObject();
@@ -23,6 +24,7 @@ namespace WebWindow
             if (y != null) objwin["y"] = y.Value;
             if (width != null) objwin["x"] = width.Value;
             if (height != null) objwin["x"] = height.Value;
+            if (autoHideMenuBar != null) objwin["autoHideMenuBar"] = autoHideMenuBar.Value;
 
             return objwin;
 

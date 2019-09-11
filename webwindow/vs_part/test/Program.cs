@@ -8,8 +8,10 @@ namespace test
         {
             Console.WriteLine("Hello World!");
 
-            var hosturl = "../../../../../html/host/index.js";
-            var winurl = "../../../../../html/win/index.html";
+            var hosturl = System.IO.Path.Join(System.IO.Directory.GetCurrentDirectory(), "../../../../../html/host/index.js");
+            hosturl = System.IO.Path.GetFullPath(hosturl);
+            var winurl = System.IO.Path.Join(System.IO.Directory.GetCurrentDirectory(), "../../../../../html/win/index.html");
+            winurl = "file://" + System.IO.Path.GetFullPath(winurl);
             WindowMgr windowmgr = new WindowMgr(hosturl, winurl);
 
             //初始化
@@ -39,7 +41,7 @@ namespace test
 
                         return;
                     }
-                    if (line == "openwin")
+                    if (line == "opennativewin")
                     {
                         if (windowmgr.hadInit == false)
                             await windowmgr.Init();
@@ -48,6 +50,16 @@ namespace test
                         op.title = "李白";
                         var wid = await windowmgr.window_create(op, "d:\\1.html");
                         Console.WriteLine("openwin=" + wid);
+                    }
+                    if (line == "openwin")
+                    {
+                        if (windowmgr.hadInit == false)
+                            await windowmgr.Init();
+                        var op = new WindowCreateOption();
+                        op.title = "李白";
+
+                        WindowRemote window = await WindowRemote.Create(windowmgr, op);
+
                     }
                     if (line.IndexOf("closewin") == 0)
                     {

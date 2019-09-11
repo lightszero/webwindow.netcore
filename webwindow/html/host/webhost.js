@@ -5,11 +5,13 @@ var electron = require("electron");
 var wshost = /** @class */ (function () {
     function wshost() {
         this.server = null;
+        this.urlcontrol = null;
         this.port = 0;
         this.windows = {};
     }
     wshost.prototype.begin = function (url) {
         var _this = this;
+        this.urlcontrol = url;
         this.server = new http.Server(function (req, res) {
             _this.onRequest(req, res);
         });
@@ -35,6 +37,8 @@ var wshost = /** @class */ (function () {
         var string = req.url;
         if (string == undefined)
             return;
+        console.log("onRequest" + string);
+        //query cmd
         var i = string.indexOf('?');
         if (i <= 0) {
             res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -97,6 +101,7 @@ var wshost = /** @class */ (function () {
                 }
             case "window.create":
                 {
+                    console.log("window.create" + JSON.stringify(params));
                     var winstyle = params[0];
                     var url = params[1];
                     var hide = params[2];
@@ -105,8 +110,9 @@ var wshost = /** @class */ (function () {
                     if (hide == undefined)
                         hide = false;
                     var mainWindow = new electron.BrowserWindow(winstyle);
-                    mainWindow.loadURL(url);
                     var _id = this.regWindow(mainWindow);
+                    console.log("try loadUrl=" + url + "?curl=" + this.urlcontrol + "&winid=" + _id);
+                    mainWindow.loadURL(url);
                     if (hide) {
                         this.showWindow(_id, false);
                     }
