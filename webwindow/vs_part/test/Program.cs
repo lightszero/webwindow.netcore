@@ -59,7 +59,8 @@ namespace test
                         op.title = "李白";
 
                         WindowRemote window = await WindowRemote.Create(windowmgr, op);
-
+                        await window.Remote_SetTitle("hello that's so cool.");
+                        await window.Remote_Eval("alert('ddd')");
                     }
                     if (line.IndexOf("closewin") == 0)
                     {
