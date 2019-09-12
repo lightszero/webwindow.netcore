@@ -63,7 +63,13 @@ window.onload = function () {
         var cmd = json["cmd"];
         var vars = json["vars"];
         if (cmd == "eval") {
-            var got = eval(vars[0]);
+            var got = null;
+            try {
+                got = eval(vars[0]);
+            }
+            catch (e) {
+                got = e.toString();
+            }
             var ret = { "cmd": "eval_back", "vars": [got] };
             ws.send(JSON.stringify(ret));
         }
