@@ -1,81 +1,66 @@
-import http = require("http");
-import electron = require('electron');
-export class wshost
-{
-    server: http.Server | null;
-    port: number;
-    windows: { [id: number]: electron.BrowserWindow };
-    urlcontrol: string | null;
-    constructor()
-    {
+"use strict";
+///<reference path="../electron.d.ts"/>
+Object.defineProperty(exports, "__esModule", { value: true });
+var electron = require("electron");
+var http = require("http");
+var wshost = /** @class */ (function () {
+    function wshost() {
         this.server = null;
         this.urlcontrol = null;
         this.port = 0;
         this.windows = {};
     }
-    begin(url: string): void
-    {
+    wshost.prototype.begin = function (url) {
+        var _this = this;
         this.urlcontrol = url;
-        this.server = new http.Server((req, res) =>
-        {
-            this.onRequest(req, res);
+        this.server = new http.Server(function (req, res) {
+            _this.onRequest(req, res);
         });
         this.port = 8888;
-        this.server.on("error", (err) =>
-        {
-            if (this.port > 10000)
-            {
+        this.server.on("error", function (err) {
+            if (_this.port > 10000) {
                 //[TAG] is importent info.
                 console.log("[TAG]listen fail");
                 console.log("can't open http port:" + err);
                 return;
             }
-            this.port++;
-            if (this.server)
-                this.server.listen(this.port);
-        })
-        this.server.on("listening", () =>
-        {
+            _this.port++;
+            if (_this.server)
+                _this.server.listen(_this.port);
+        });
+        this.server.on("listening", function () {
             //[TAG] is importent info.
-            console.log("[TAG]listen at:" + this.port);
+            console.log("[TAG]listen at:" + _this.port);
         });
         this.server.listen(this.port);
-
-    }
-    onRequest(req: http.IncomingMessage, res: http.ServerResponse)
-    {
+    };
+    wshost.prototype.onRequest = function (req, res) {
         var string = req.url;
-        if (string == undefined) return;
-
+        if (string == undefined)
+            return;
         console.log("onRequest" + string);
-
         //query cmd
         var i = string.indexOf('?');
-        if (i <= 0)
-        {
+        if (i <= 0) {
             res.writeHead(200, { 'Content-Type': 'text/plain' });
             res.end(JSON.stringify({ "code": -1, "msg": 'Hello World.' }));
             return;
         }
         var query = decodeURIComponent(string.substr(i + 1));
         var lines = query.split("&");
-        var method: string | null = null;
-        var params: any;
-        for (var i = 0; i < lines.length; i++)
-        {
+        var method = null;
+        var params;
+        for (var i = 0; i < lines.length; i++) {
             var line = lines[i];
             var words = line.split("=");
-            if (words.length > 1 && words[0] == "method")
-            {
+            if (words.length > 1 && words[0] == "method") {
                 method = words[1];
             }
-            if (words.length > 1 && words[0] == "params")
-            {
+            if (words.length > 1 && words[0] == "params") {
                 params = JSON.parse(words[1]);
             }
         }
-        if (method == null)
-        {
+        if (method == null) {
             res.writeHead(200, { 'Content-Type': 'text/plain' });
             res.end(JSON.stringify({ "code": -2, "msg": 'miss method.' }));
             return;
@@ -88,11 +73,9 @@ export class wshost
         res.writeHead(200, { 'Content-Type': 'text/plain' });
         res.end(JSON.stringify({ "code": -100, "msg": 'other error.' }));
         return;
-    }
-    onMethod(method: string, params: any, res: http.ServerResponse): boolean
-    {
-        switch (method)
-        {
+    };
+    wshost.prototype.onMethod = function (method, params, res) {
+        switch (method) {
             case "hi":
                 {
                     res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -103,52 +86,44 @@ export class wshost
                 {
                     res.writeHead(200, { 'Content-Type': 'text/plain' });
                     res.end(JSON.stringify({ "code": 0, "msg": 'electron exit.' }));
-
                     electron.app.exit();
                     return true;
                 }
             case "window.stats":
                 {
-                    var outinfo: { [id: number]: boolean } = {};
-                    for (var key in this.windows)
-                    {
+                    var outinfo = {};
+                    for (var key in this.windows) {
                         var b = this.windows[key].isVisible();
                         outinfo[key] = b;
                     }
                     res.writeHead(200, { 'Content-Type': 'text/plain' });
                     res.end(JSON.stringify({ "code": 0, "data": outinfo }));
-
                     electron.app.exit();
                 }
             case "window.create":
                 {
                     console.log("window.create" + JSON.stringify(params));
-                    var winstyle: electron.BrowserWindowConstructorOptions = params[0];
-                    var url: string = params[1];
-                    var hide: boolean = params[2];
+                    var winstyle = params[0];
+                    var url = params[1];
+                    var hide = params[2];
                     //这个机制保证菜单栏隐藏
                     if (winstyle.autoHideMenuBar == undefined)
                         winstyle.autoHideMenuBar = true;
                     if (hide == undefined)
                         hide = false;
-                        
                     //这个机制保证nodejs被打开，这样才能requrie
-                    if (winstyle.webPreferences == null)
-                    {
+                    if (winstyle.webPreferences == null) {
                         winstyle.webPreferences = { nodeIntegration: true };
                     }
-                    else
-                    {
+                    else {
                         winstyle.webPreferences.nodeIntegration = true;
                     }
-                    
                     var mainWindow = new electron.BrowserWindow(winstyle);
                     var _id = this.regWindow(mainWindow);
                     var loadurl = url + "?curl=" + this.urlcontrol + "&winid=" + _id;
                     console.log("try loadUrl=" + loadurl);
                     mainWindow.loadURL(loadurl);
-                    if (hide)
-                    {
+                    if (hide) {
                         this.showWindow(_id, false);
                     }
                     res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -157,7 +132,7 @@ export class wshost
                 }
             case "window.show":
                 {
-                    var _id: number = params[0];
+                    var _id = params[0];
                     this.showWindow(_id, true);
                     res.writeHead(200, { 'Content-Type': 'text/plain' });
                     res.end(JSON.stringify({ "code": 1, "winid": _id }));
@@ -165,7 +140,7 @@ export class wshost
                 }
             case "window.hide":
                 {
-                    var id: number = params[0];
+                    var id = params[0];
                     this.showWindow(id, false);
                     res.writeHead(200, { 'Content-Type': 'text/plain' });
                     res.end(JSON.stringify({ "code": 1, "winid": id }));
@@ -173,48 +148,60 @@ export class wshost
                 }
             case "window.close":
                 {
-                    var id: number = params[0];
+                    var id = params[0];
                     this.closeWindow(id);
                     res.writeHead(200, { 'Content-Type': 'text/plain' });
                     res.end(JSON.stringify({ "code": 1, "winid": id }));
                 }
         }
         return false;
-    }
-
-    regWindow(window: electron.BrowserWindow): number
-    {
+    };
+    wshost.prototype.regWindow = function (window) {
+        var _this = this;
         this.windows[window.id] = window;
-        window.on("close", (e) =>
-        {
-            delete this.windows[window.id];
+        window.on("close", function (e) {
+            delete _this.windows[window.id];
         });
         return window.id;
-    }
-    closeWindow(id: number): boolean
-    {
+    };
+    wshost.prototype.closeWindow = function (id) {
         if (this.windows[id] == undefined)
             return false;
         this.windows[id].close();
         return true;
-    }
-    showWindow(id: number, show: boolean, focus?: boolean): boolean
-    {
+    };
+    wshost.prototype.showWindow = function (id, show, focus) {
         if (this.windows[id] == undefined)
             return false;
         var win = this.windows[id];
-
-        if (show)
-        {
+        if (show) {
             win.show();
             if (focus)
                 win.focus();
         }
-        else
-        {
+        else {
             win.hide();
         }
         return true;
-
-    }
+    };
+    return wshost;
+}());
+exports.wshost = wshost;
+///////////////////////////////////////////////////////
+//run code
+function main() {
+    //入参方法，通过命令行可以传递数据给electron
+    var url = electron.app.commandLine.getSwitchValue("controlurl");
+    console.log("controlurl=" + url);
+    var host = new wshost();
+    host.begin(url);
 }
+electron.app.on("ready", main);
+electron.app.on("window-all-closed", function () {
+    //[TAG] is importent info.
+    //依然选择所有窗口都关闭则退出electron进程
+    console.log("[TAG]all window closed.quit");
+    electron.app.exit();
+});
+console.log("electron app start.");
+//# sourceMappingURL=index.js.map

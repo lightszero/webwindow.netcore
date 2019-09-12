@@ -31,10 +31,10 @@ namespace WebWindow
             private set;
         }
         public event Action onAllWindowClose;
-        public WindowMgr(string urlHost, string urlWin)
+        public WindowMgr(string urlHost = "html/host/index.js", string urlWin = "html/win/index.html")
         {
-            this.urlHost = urlHost;
-            this.urlWin = urlWin;
+            this.urlHost = System.IO.Path.GetFullPath(urlHost);
+            this.urlWin = System.IO.Path.GetFullPath(urlWin);
             this.allWindowClose = false;
         }
         static string cmdfile
@@ -238,7 +238,7 @@ namespace WebWindow
             {
                 await Task.Delay(1);
                 var tag = TryGetTag();
-                if (tag!=null)
+                if (tag != null)
                 {
                     if (tag.IndexOf("listen at:") == 0)
                     {

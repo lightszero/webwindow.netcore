@@ -15,4 +15,16 @@
     <ProjectReference Include="..\lib.httpserver\lib.httpserver.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="html\host\index.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="html\win\index.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="html\win\main.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -1,35 +1,43 @@
 "use strict";
 ///<reference path="../../webhost/electron.d.ts"/>
-var remote = require('electron').remote;
-function closethis() {
-    var win = remote.getCurrentWindow();
-    win.close();
-}
-function settitle(title) {
-    var win = remote.getCurrentWindow();
-    win.setTitle(title);
-}
-function decodequery() {
-    var url = document.location.toString();
-    var arrUrl = url.split("?");
-    var query = decodeURIComponent(arrUrl[1]);
-    var lines = query.split("&");
-    var _curl = "";
-    var _winid = 0;
-    for (var i = 0; i < lines.length; i++) {
-        var line = lines[i];
-        var words = line.split("=");
-        if (words.length > 1 && words[0] == "curl") {
-            _curl = words[1];
-        }
-        if (words.length > 1 && words[0] == "winid") {
-            _winid = parseInt(words[1]);
-        }
+var remote = require("electron").remote;
+//给js调用的API
+var API = /** @class */ (function () {
+    function API() {
     }
-    return { curl: _curl, winid: _winid };
-}
-var __pageoption;
+    return API;
+}());
+var __api = new API();
 window.onload = function () {
+    var __pageoption;
+    //把函数藏起来，尽量不污染空间
+    var closethis = function () {
+        var win = remote.getCurrentWindow();
+        win.close();
+    };
+    var settitle = function (title) {
+        var win = remote.getCurrentWindow();
+        win.setTitle(title);
+    };
+    var decodequery = function () {
+        var url = document.location.toString();
+        var arrUrl = url.split("?");
+        var query = decodeURIComponent(arrUrl[1]);
+        var lines = query.split("&");
+        var _curl = "";
+        var _winid = 0;
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            var words = line.split("=");
+            if (words.length > 1 && words[0] == "curl") {
+                _curl = words[1];
+            }
+            if (words.length > 1 && words[0] == "winid") {
+                _winid = parseInt(words[1]);
+            }
+        }
+        return { curl: _curl, winid: _winid };
+    };
     __pageoption = decodequery();
     console.log("this winid =" + __pageoption.winid);
     console.log("curl = " + __pageoption.curl);
@@ -66,7 +74,10 @@ window.onload = function () {
             ws.send(JSON.stringify(ret));
         }
     };
+    //赋予公开的API功能
+    __api.sendback = function (vars) {
+        var ret = { "cmd": "sendback", "vars": vars };
+        ws.send(JSON.stringify(ret));
+    };
 };
-function testcode() {
-}
 //# sourceMappingURL=main.js.map

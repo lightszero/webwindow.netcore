@@ -26,6 +26,7 @@ namespace WebWindow
                 allwindow = new Dictionary<int, WindowRemote>();
             allwindow[win.winid] = win;
         }
+        public event Action<JArray> OnSendBack;
 
         public void OnRecv(string cmd, JArray vars)
         {
@@ -43,6 +44,10 @@ namespace WebWindow
                 {
                     tag_eval = vars[0];
                 }
+            }
+            if(cmd=="sendback")
+            {
+                OnSendBack?.Invoke(vars);
             }
         }
         bool tag_title;
